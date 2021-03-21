@@ -1,0 +1,26 @@
+@startuml
+title Update with new measurement
+
+Detector -> InputManager: DetectionsMsg
+
+InputManager -> Tracker: Detections
+
+Tracker -> BirthModel: update(Detections)
+
+
+Tracker -> DynamicModel: updateTime(current_time)
+Tracker -> Filter: predict()
+
+Tracker -> MeasurementModel: updateTime(current_time)
+Tracker -> Filter: update(Detections)
+
+Tracker -> Filter: getStates()
+Filter --> Tracker: States
+
+Tracker -> TrackAssociator: associate(States, Tracks)
+TrackAssociator -> Hungarian: optimize(States, Tracks)
+Hungarian -> TrackAssociator: AssociationTable
+TrackAssociator -> Tracker: AssociatedTracks
+
+Tracker -> Display: TracksMsg
+@enduml

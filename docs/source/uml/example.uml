@@ -1,0 +1,6 @@
+@startuml
+Input -> InputManager: Image
+InputManager -> Detector: ImageMsg  
+Detector -> Tracker: DetectionsMsg
+Tracker -> Display: TracksMsg
+@enduml
