@@ -2,7 +2,7 @@ import unittest
 from scipy.optimize import linear_sum_assignment
 import numpy as np
 
-from python.src.track import compute_cost_matrix, Track, Measurement, ImageFrame, MeasurementState, TrackState, \
+from python.src.track_association import Track, Estimate, ImageFrame, EstimateState, TrackState, \
     compute_spatio_temporal_cost
 
 
@@ -16,8 +16,8 @@ def make_no_speed_track_state(x: float, y: float, width: int, height: int) -> Tr
 
 class TracksTestCase(unittest.TestCase):
     def setUp(self) -> None:
-        self.mock_measurement = Measurement(state=MeasurementState(x=4., y=6., width=10, height=10),
-                                            frame=make_empty_frame(100, 100))
+        self.mock_measurement = Estimate(state=EstimateState(x=4., y=6., width=10, height=10),
+                                         frame=make_empty_frame(100, 100))
 
         self.mock_track = Track(state=make_no_speed_track_state(x=4., y=6., width=10, height=10),
                                 frame=make_empty_frame(100, 100))
@@ -28,9 +28,13 @@ class TracksTestCase(unittest.TestCase):
     def test_linear_sum_assignment(self):
         cost_matrix = np.array([[1., 2., 3.],
                                 [2., 2., 3.],
-                                [1., 4., 6.]])
+                                [1., 4., 6.],
+                                [1., 1., 2.],
+                                [1., 4., 3.]])
 
-        row_ind, col_ind = linear_sum_assignment(cost_matrix, maximize=True)
+        row_ind, col_ind = linear_sum_assignment(cost_matrix)
+
+        [print(row, col) for row, col in zip(row_ind, col_ind)]
 
         if __name__ == '__main__':
             unittest.main()
