@@ -2,28 +2,7 @@ import typing
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
-
-class ImageFrame(typing.NamedTuple):
-    image: np.ndarray
-    width: int
-    height: int
-
-
-class TrackState(typing.NamedTuple):
-    x: float
-    y: float
-    x_dot: float
-    y_dot: float
-    width: int
-    height: int
-
-    def position(self):
-        return np.array([self.x, self.y])
-
-
-class Track(typing.NamedTuple):
-    state: TrackState
-    frame: ImageFrame
+from python.src.track import ImageFrame, Track
 
 
 class EstimateState(typing.NamedTuple):
@@ -38,6 +17,7 @@ class EstimateState(typing.NamedTuple):
 
 class Estimate(typing.NamedTuple):
     state: EstimateState
+    covariance: np.ndarray
     frame: ImageFrame
 
 
@@ -71,7 +51,7 @@ def compute_visual_spatio_temporal_cost(track: Track, estimate: Estimate) -> flo
     :param estimate:
     :return:
     """
-    return compute_spatio_temporal_cost(track, estimate)
+    return compute_spatio_temporal_cost(track, estimate) + compute_visual_cost(track, estimate)
 
 
 def compute_visual_spatio_temporal_cost_matrix(tracks: typing.List[Track],
@@ -99,14 +79,19 @@ def hungarian_assignment(cost_matrix: np.ndarray):
 
 
 class TrackAssociator:
-    def __init__(self, cost_matrix_computation_strategy: typing.Callable = compute_visual_spatio_temporal_cost_matrix,
+    def __init__(self, association_cost_threshold: float,
+                 cost_matrix_computation_strategy: typing.Callable = compute_visual_spatio_temporal_cost_matrix,
                  assignment_strategy: typing.Callable = hungarian_assignment):
         """
-        :param cost_matrix_computation_strategy: strategy to compute the cost matrix used for assignment. Default one is visual-spatiotemporal cost.
+        :param association_cost_threshold: threshold used to determine if an association is valid. The association is
+            valid only if above this threshold.
+        :param cost_matrix_computation_strategy: strategy to compute the cost matrix used for assignment. Default one is
+        visual-spatiotemporal cost.
         :param assignment_strategy: strategy for assignment between tracks and estimates. Default is Hungarian algorithm.
         """
         self.cost_matrix_computation_strategy = cost_matrix_computation_strategy
         self.assignment_algorithm = assignment_strategy
+        self.association_cost_threshold = association_cost_threshold
 
     def associate(self, tracks: typing.List[Track], estimates: typing.List[Estimate]) -> typing.Tuple[
         typing.List[AssociatedTrackEstimate], typing.List[Track], typing.List[Estimate]]:
@@ -129,10 +114,15 @@ class TrackAssociator:
         # Step 4: create track with existing assignment
         associated_tracks = []
         for track_index, estimate_index in zip(track_indices, estimate_indices):
-            associated_tracks.append(
-                AssociatedTrackEstimate(track=tracks[track_index], estimate=estimates[estimate_index],
-                                        association_cost=cost_matrix[track_index][estimate_index]))
+            if cost_matrix[track_index][estimate_index] >= self.association_cost_threshold:
+                associated_tracks.append(
+                    AssociatedTrackEstimate(track=tracks[track_index], estimate=estimates[estimate_index],
+                                            association_cost=cost_matrix[track_index][estimate_index]))
+
             tracks_set.remove(tracks[track_index])
             estimates_set.remove(estimates[estimate_index])
 
-        return associated_tracks, list(tracks_set), list(estimates_set)
+        unassigned_tracks = list(tracks_set)
+        unassigned_estimates = list(estimates_set)
+
+        return associated_tracks, unassigned_tracks, unassigned_estimates

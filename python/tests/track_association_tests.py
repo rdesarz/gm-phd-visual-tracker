@@ -2,8 +2,8 @@ import unittest
 from scipy.optimize import linear_sum_assignment
 import numpy as np
 
-from python.src.track_association import Track, Estimate, ImageFrame, EstimateState, TrackState, \
-    compute_spatio_temporal_cost
+from python.src.track_association import Estimate, EstimateState, compute_spatio_temporal_cost
+from python.src.track import ImageFrame, TrackState, Track
 
 
 def make_empty_frame(width: int, height: int) -> ImageFrame:
