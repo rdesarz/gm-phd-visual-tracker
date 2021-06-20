@@ -4,14 +4,8 @@ import typing
 import numpy as np
 
 from python.src.multiple_target_filter import MultipleTargetFilter
-from python.src.track import Track, TrackFrame
+from python.src.track import Track
 from python.src.track_association import TrackAssociator
-
-
-class UnassignedTrackInformation(typing.NamedTuple):
-    last_measurement_matrix: np.ndarray
-    last_process_noise_matrix: np.ndarray
-    last_covariance_matrix: np.ndarray
 
 
 class BoundingBox(typing.NamedTuple):
@@ -23,7 +17,7 @@ class BoundingBox(typing.NamedTuple):
 
 class Detection(typing.NamedTuple):
     timestamp: datetime.datetime
-    bounding: BoundingBox
+    bounding_box: BoundingBox
     image: np.ndarray
     confidence_score: float
 
@@ -33,14 +27,15 @@ class Tracker:
         self.filter: MultipleTargetFilter = filter
         self.track_associator: TrackAssociator = track_associator
         self.tracks: typing.List[Track] = []
-        self.unassigned_track_infos = typing.Dict[int, UnassignedTrackInformation]
+        # self.birth_model
 
     def processDetections(self, timestamp: datetime.datetime, detections: typing.List[Detection]):
         # Compute time delta between last update and current update
+        # self.birth_model.update(detections)
 
         # Predict and update filter
-        # filter.predict(delta_t)
-        # filter.update(detections)
+        # self.filter.predict(delta_t)
+        # self.filter.update(detections)
 
         # Compute estimates
         # estimates = [compute_estimate(target_state, target_covariance, detections[0].image) for
