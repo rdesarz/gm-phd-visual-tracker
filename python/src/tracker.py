@@ -25,7 +25,7 @@ class Detection(typing.NamedTuple):
     timestamp: datetime.datetime
     bounding: BoundingBox
     image: np.ndarray
-    confidence: float
+    confidence_score: float
 
 
 class Tracker:

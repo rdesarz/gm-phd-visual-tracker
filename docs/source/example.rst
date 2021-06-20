@@ -32,6 +32,15 @@ library to compute the assignment.
 
 The cost used for the assignment 
 
+.. code-block:: python
+  
+  
+    interesting = False
+    print 'This line is highlighted.'
+    print 'This one is not...'
+    print '...but this one is.'
+
+
 Tracks dispatch
 ---------------
 
